@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HLOW</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <br>
+
+<div class="container">
+    <form id="myForm">
+        <label for="name">Mess :</label>
+        <input class="form-control" type="text" id="name" required />
+        <button class="btn btn-dark" type="button" onclick="addData()" style="margin-top: 10px;">Add</button>
+    </form>
+
+    <table id="myTable" class="table">
+        <tr>
+            <th>Mess</th>
+            <th>Action</th>
+        </tr>
+    </table>
+
+</div>
+
+    <script>
+        function addData() {
+            var nameInput = document.getElementById('name');
+            var newName = nameInput.value.trim();
+    
+            if (newName !== '') {
+                var newData = {
+                    name: newName
+                };
+    
+                // Send data to the server
+                fetch('/addData', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(newData),
+                })
+                .then(response => response.text())
+                .then(data => {
+                    console.log(data);
+                    // Reload the table with updated data
+                    fetchTableData();
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+    
+                nameInput.value = '';
+            }
+        }
+    
+        function editData(name) {
+            var newName = prompt('Enter the new name:', name);
+    
+            if (newName !== null) {
+                var updatedData = {
+                    name: name,
+                    newName: newName
+                };
+    
+                // Send data to the server for edit
+                fetch('/editData', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updatedData),
+                })
+                .then(response => response.text())
+                .then(data => {
+                    console.log(data);
+                    // Reload the table with updated data
+                    fetchTableData();
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+            }
+        }
+    
+        function deleteData(name) {
+            var confirmation = confirm('Are you sure you want to delete ' + name + '?');
+    
+            if (confirmation) {
+                var dataToDelete = {
+                    name: name
+                };
+    
+                // Send data to the server for delete
+                fetch('/deleteData', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(dataToDelete),
+                })
+                .then(response => response.text())
+                .then(data => {
+                    console.log(data);
+                    // Reload the table with updated data
+                    fetchTableData();
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+            }
+        }
+    
+        function fetchTableData() {
+            // Fetch data from the server and update the table
+            fetch('/getData')
+            .then(response => response.json())
+            .then(data => {
+                renderTable(data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+    
+        function renderTable(data) {
+            var table = document.getElementById('myTable');
+            table.innerHTML = '<tr><th>Mess</th><th>Action</th></tr>';
+    
+            data.forEach(function(item) {
+                var row = table.insertRow();
+                var cell1 = row.insertCell(0);
+                var cell2 = row.insertCell(1);
+    
+                cell1.innerHTML = item.name;
+                cell2.innerHTML = '<button type="button" class="btn btn-success" onclick="editData(\'' + item.name + '\')">Edit</button>' +
+                                  '<button type="button" class="btn btn-danger" onclick="deleteData(\'' + item.name + '\')">Delete</button>';
+            });
+        }
+    
+        // Initial rendering
+        fetchTableData();
+    </script>
+    
+
+</body>
+</html>
